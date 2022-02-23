@@ -1,29 +1,106 @@
-var mymap = L.map('mapid').setView([38.63775922635261, -90.28368046396037], 13);
-//https://a.tile.openstreetmap.org/{z}/{x}/{y}.png
-//'http://a.tile.stamen.com/toner/{z}/{x}/{y}.png'
-//https://wiki.openstreetmap.org/wiki/Tile_servers
-L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
-	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-	subdomains: 'abcd',
-	minZoom: 1,
-	maxZoom: 16,
-	ext: 'jpg'
-}).addTo(mymap);
+require([
+      "esri/Map",
+      "esri/layers/FeatureLayer",
+      "esri/views/MapView",
+      "dojo/domReady!"
+    ], function(
+      Map,
+      FeatureLayer,
+      MapView
+    ) {
 
-var marker = L.marker([38.63672876590212, -90.24674730564345]).addTo(mymap);
+      // Create the map
+      var map = new Map({
+        basemap: "gray"
+      });
 
-var marker2 = L.marker([38.63816176328897, -90.25104626536422]).addTo(mymap);
+      // Create the MapView
+      var view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center:[-90.19,38.62],
+        zoom: 11
+      });
 
-var marker3 = L.marker([38.661539699331904, -90.30894447950988]).addTo(mymap);
+      /*************************************************************
+       * The PopupTemplate content is the text that appears inside the
+       * popup. {fieldName} can be used to reference the value of an
+       * attribute of the selected feature. HTML elements can be used
+       * to provide structure and styles within the content. The
+       * fieldInfos property is an array of objects (each object representing
+       * a field) that is use to format number fields and customize field
+       * aliases in the popup and legend.
+       **************************************************************/
 
-var marker4 = L.marker([38.61714841986633, -90.27511168787689]).addTo(mymap);
+      var template = 
+        { // autocasts as new PopupTemplate()
+        title: "Neighborhood: {NHD_NAME}",
+        content: [{
+          // It is also possible to set the fieldInfos outside of the content
+          // directly in the popupTemplate. If no fieldInfos is specifically set
+          // in the content, it defaults to whatever may be set within the popupTemplate.
+          type: "fields",
+          fieldInfos: [{
+            fieldName: "NHD_NUM",
+            label: "Neighborhood Number: ",
+            visible: true
+          },  {
+            fieldName: "Shape__Area",
+            label: "Area:",
+            visible: true,
+            format: {
+              digitSeparator: true,
+              places: 0
+            }
+          }, {
+            fieldName: "Shape__Length",
+            label: "Length:",
+            visible: true,
+            format: {
+              digitSeparator: true,
+              places: 0
+            }
+          }
+                      ]
+        }]
+      };
 
-var marker5 = L.marker([38.64751484426265, -90.2744901289432]).addTo(mymap);
+     var symbol = {
+      type: "picture-marker",  // autocasts as new PictureMarkerSymbol()
+      url: "https://cdn.iconscout.com/icon/premium/png-256-thumb/hockey-240-984443.png",
+      width: "64px",
+      height: "64px"
+};
+  var renderer = {
+      type: "simple",  // autocasts as new SimpleRenderer()
+      symbol: symbol
+    };
+  
+  
+      // Reference the popupTemplate instance in the
+      // popupTemplate property of FeatureLayer
+      var featureLayer = new FeatureLayer({
+        url: "https://services2.arcgis.com/bB9Y1bGKerz1PTl5/ArcGIS/rest/services/STL_Neighborhood/FeatureServer/0",
+        outFields: ["*"],
+        popupTemplate: template,
+        renderer:renderer
+      });
+  
+      map.add(featureLayer);
+  
 
+   /*
+      featureLayer.renderer = {
+      type: "simple",  // autocasts as new SimpleRenderer()
+      symbol: {
+        type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+        size: 6,
+        color: "red",
+        outline: {  // autocasts as new SimpleLineSymbol()
+          width: 0.5,
+          color: "white"
+        }
+      }
+    };*/
+    });
 
-
-marker.bindPopup("<b>Scottish Arms</b>.").openPopup();
-marker2.bindPopup("<b>Scarlett's Wine Bar</b>.").openPopup();
-marker3.bindPopup("<b>Mi Ranchito</b>.").openPopup();
-marker4.bindPopup("<b>Lorenzo's Trattoria</b>.").openPopup();
-marker4.bindPopup("<b>2Shae Cafe</b>.").openPopup();
